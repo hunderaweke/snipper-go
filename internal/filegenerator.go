@@ -3,39 +3,27 @@ package internal
 import (
 	"fmt"
 	"os"
+	"os/exec"
 )
 
 func GenerateDirectories(projectName string) {
 	os.Mkdir(projectName, 0755)
 	os.Chdir(projectName)
-	file, err := os.Create("go.mod")
+	cmd := exec.Command("go", "mod", "init", projectName)
+	_, err := cmd.Output()
 	if err != nil {
 		panic(err)
 	}
-	file.WriteString(`module github.com/hunderaweke/snipper-go
-
-go 1.21.4
-
-require (
-	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/gofiber/fiber/v2 v2.51.0 // indirect
-	github.com/google/uuid v1.4.0 // indirect
-	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/klauspost/compress v1.16.7 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.50.0 // indirect
-	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/sys v0.14.0 // 
-	github.com/joho/godotenv
-)
-	`)
-	defer file.Close()
 	generateFiles(projectName, "models")
 	generateFiles(projectName, "handlers")
 	generateFiles(projectName, "config")
+	generateFiles(projectName, "controllers")
+	generateFiles(projectName, "routes")
+	cmd = exec.Command("go", "mod", "tidy")
+	_, err = cmd.Output()
+	if err != nil {
+		panic(err)
+	}
 }
 func generateFiles(projectDir string, name string) {
 	os.Mkdir(name, 0755)
@@ -43,14 +31,14 @@ func generateFiles(projectDir string, name string) {
 	switch name {
 	case "models":
 		writeModels("models.go")
-	case "routers":
-		break
+	case "routes":
+		writeRoutes(name + ".go")
 	case "controllers":
-		break
+		writeControllers(name + ".go")
 	case "handlers":
 		writeHandlers(name + ".go")
 	case "cmd":
-		break
+		writeCmd(name + ".go")
 	case "config":
 		writeConfig("database.go")
 	}
@@ -82,6 +70,58 @@ func writeHandlers(fileName string) {
 	}
 	content := `package handlers 
 // This is the place for creating your handlers
+
+`
+	_, err = file.WriteString(content)
+	if err != nil {
+		panic(err)
+	}
+}
+func writeCmd(fileName string) {
+	file, err := os.Create(fileName)
+	if err != nil {
+		fmt.Println("error ", err)
+		return
+	}
+	content := `package main 
+// This is the place for creating your handlers
+func main(){
+	// A place for running the code completely
+
+}
+`
+	_, err = file.WriteString(content)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func writeRoutes(fileName string) {
+	file, err := os.Create(fileName)
+	if err != nil {
+		fmt.Println("error ", err)
+		return
+	}
+	content := `package routes 
+// This is the place for creating your routes
+
+`
+	_, err = file.WriteString(content)
+	if err != nil {
+		panic(err)
+	}
+}
+func writeControllers(fileName string) {
+	file, err := os.Create(fileName)
+	if err != nil {
+		fmt.Println("error ", err)
+		return
+	}
+	content := `package controllers 
+// This is the place for creating your controllers
+func init(){
+	// Some of the startup codes here
+}
 
 `
 	_, err = file.WriteString(content)
