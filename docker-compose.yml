@@ -1,0 +1,36 @@
+services:
+    mysql:
+        image: mysql:8.2
+        restart: always
+        networks:
+        - backend
+        env_file:
+        - ./.env
+        volumes:
+        - data:/var/lib/mysql
+        ports:
+        - 4060:3306
+        environment:
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        MYSQL_DATABASE: ${MYSQL_DATABASE}
+        MYSQL_USER: ${MYSQL_USER}
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
+    backend:
+        build: ./backend
+        ports:
+        - 7080:7080
+        env_file:
+        - ./backend/.env
+        networks:
+        - backend
+        depends_on:
+            mysql:
+        condition: service_healthy
+networks:
+    backend:
+volumes:
+    data:

@@ -3,36 +3,17 @@ package internal
 import (
 	"fmt"
 	"os"
-	"os/exec"
 )
 
-func GenerateDirectories(projectName string) {
-	os.Mkdir(projectName, 0755)
-	os.Chdir(projectName)
-	cmd := exec.Command("go", "mod", "init", projectName)
-	_, err := cmd.Output()
-	if err != nil {
-		panic(err)
-	}
-	generateFiles(projectName, "models")
-	generateFiles(projectName, "handlers")
-	generateFiles(projectName, "config")
-	generateFiles(projectName, "controllers")
-	generateFiles(projectName, "routes")
-	cmd = exec.Command("go", "mod", "tidy")
-	_, err = cmd.Output()
-	if err != nil {
-		panic(err)
-	}
-}
 func generateFiles(projectDir string, name string) {
 	os.Mkdir(name, 0755)
 	os.Chdir(name)
+	writeMain()
 	switch name {
 	case "models":
 		writeModels("models.go")
 	case "routes":
-		writeRoutes(name + ".go")
+		writeRouters(name + ".go")
 	case "controllers":
 		writeControllers(name + ".go")
 	case "handlers":
@@ -43,6 +24,28 @@ func generateFiles(projectDir string, name string) {
 		writeConfig("database.go")
 	}
 	os.Chdir("..")
+	writeEnv()
+}
+func writeMain() {
+	file, err := os.Create("main.go")
+	if err != nil {
+		panic(err)
+	}
+	content := `package main
+import (
+	"github.com/gofiber/fiber/v2"
+)
+func main(){
+	app := fiber.NewApp()
+	app.Get("/", func (c *fiber.Ctx) error {
+        return c.SendString("Hello, World!")
+    })
+
+    log.Fatal(app.Listen(":3000"))
+}
+	`
+	file.WriteString(content)
+	defer file.Close()
 }
 func writeModels(fileName string) {
 	file, err := os.Create(fileName)
@@ -96,7 +99,7 @@ func main(){
 	}
 }
 
-func writeRoutes(fileName string) {
+func writeRouters(fileName string) {
 	file, err := os.Create(fileName)
 	if err != nil {
 		fmt.Println("error ", err)
@@ -173,6 +176,24 @@ func GetDB() *gorm.DB {
 	if err != nil {
 		fmt.Println("error ", err)
 		return
+	}
+	_, err = file.WriteString(content)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func writeEnv() {
+	content :=
+		`DB_USERNAME=username
+DB_PASSWORD=password
+DB_NAME=db
+DB_PORT=port
+DB_HOST=localhost
+`
+	file, err := os.Create(".env.sample")
+	if err != nil {
+		panic(err)
 	}
 	_, err = file.WriteString(content)
 	if err != nil {
