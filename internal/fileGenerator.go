@@ -8,7 +8,6 @@ import (
 func generateFiles(projectDir string, name string) {
 	os.Mkdir(name, 0755)
 	os.Chdir(name)
-	writeMain()
 	switch name {
 	case "models":
 		writeModels("models.go")
@@ -24,7 +23,6 @@ func generateFiles(projectDir string, name string) {
 		writeConfig("database.go")
 	}
 	os.Chdir("..")
-	writeEnv()
 }
 func writeMain() {
 	file, err := os.Create("main.go")

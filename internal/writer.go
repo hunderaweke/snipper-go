@@ -9,6 +9,8 @@ import (
 func GenerateDirectories(projectName string) {
 	os.Mkdir(projectName, 0755)
 	os.Chdir(projectName)
+	writeMain()
+	writeEnv()
 	cmd := exec.Command("go", "mod", "init", projectName)
 	_, err := cmd.Output()
 	if err != nil {
